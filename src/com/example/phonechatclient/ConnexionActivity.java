@@ -5,12 +5,12 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.view.GravityCompat;
@@ -25,10 +25,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 import common.*;
 
 public class ConnexionActivity extends Activity {
@@ -45,13 +47,15 @@ public class ConnexionActivity extends Activity {
 	private boolean running = true;
 	private EditText message;
 	private Button bouton;
-	private TextView screen;
+	private LinearLayout screen;
 	private ScrollView scrollView;
 	private String longueurClef;
-	private RSA rsa = new RSA();
+	private RSA rsa;
 	publicKey serverPublicKey;
 	private String[] colors = {"black","blue","yellow","green","red","gray"};
 	private String[] couleurs = {"noir","bleu","jaune","vert","rouge","gris"};
+	private MyColor textColor;
+	private Client client;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -62,7 +66,7 @@ public class ConnexionActivity extends Activity {
 		nom = connexion.getStringExtra("nom");
 		adresse = connexion.getStringExtra("adresse");
 		longueurClef = connexion.getStringExtra("longueurClef");
-		Log.v("longueur",longueurClef);
+		rsa = new RSA(Integer.parseInt(longueurClef));
 		mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
 		mDrawerList = (ListView) findViewById(R.id.left_drawer);
 
@@ -71,11 +75,12 @@ public class ConnexionActivity extends Activity {
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 		getActionBar().setHomeButtonEnabled(true);
 		getActionBar().setTitle(nom);
+		
 
 
 		message = (EditText) findViewById(R.id.msg);
 		bouton = (Button)findViewById(R.id.sendMsg);
-		screen = (TextView) findViewById(R.id.screen);
+		screen = (LinearLayout) findViewById(R.id.screen);
 		scrollView = (ScrollView) findViewById(R.id.scrollView1);
 		bouton.setOnClickListener(new View.OnClickListener() {
 
@@ -133,8 +138,8 @@ public class ConnexionActivity extends Activity {
 
 			}
 		});
-		
-		
+
+
 		mDrawerToggle = new ActionBarDrawerToggle(
 				this,                  /* host Activity */
 				mDrawerLayout,         /* DrawerLayout object */
@@ -167,20 +172,17 @@ public class ConnexionActivity extends Activity {
 
 	}
 
-	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.menu, menu);
 		return super.onCreateOptionsMenu(menu);
 	}
 	/* Called whenever we call invalidateOptionsMenu() */
-	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
 		// If the nav drawer is open, hide action items related to the content view
 		return super.onPrepareOptionsMenu(menu);
 	}
 
-	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// The action bar home/up action should open or close the drawer.
 		// ActionBarDrawerToggle will take care of this.
@@ -189,11 +191,11 @@ public class ConnexionActivity extends Activity {
 		}
 		// Handle action buttons
 		switch(item.getItemId()) {
-		
+
 		case R.id.param:
 			AlertDialog.Builder builder = new AlertDialog.Builder(ConnexionActivity.this);
 			final View view = ConnexionActivity.this.getLayoutInflater().inflate(R.layout.params, null);
-			
+
 			final CheckBox cb = (CheckBox)view.findViewById(R.id.checkCrypte);
 			final Spinner liste = (Spinner) view.findViewById(R.id.colorSelect);
 			liste.setAdapter(new ColorAdapter(ConnexionActivity.this, android.R.layout.simple_spinner_item,colors, couleurs));
@@ -201,64 +203,35 @@ public class ConnexionActivity extends Activity {
 			builder.setTitle("Paramètres");
 			builder.setNegativeButton("Annuler", null);
 			builder.setPositiveButton("Accepter", new DialogInterface.OnClickListener(){
-			
-				
+
+
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					crypter = cb.isChecked();					
 				}
-				
+
 			});
 			builder.setView(view).show();
 			break;
-		/*case R.id.item1:
-			Log.v("checked",String.valueOf(item.isChecked()));
-			if(item.isChecked())
-			{
-				item.setChecked(false);
-				crypter = false;
-			}
-			else
-			{
-				item.setChecked(true);
-				crypter = true;
-			}
+		case R.id.file:
+			Intent download = new Intent(ConnexionActivity.this,DownloadActivity.class);
+			download.putExtra("client", client);
+			download.putExtra("port", port);
+			download.putExtra("adresse", adresse);
+			ConnexionActivity.this.startActivity(download);
 			break;
-		case R.id.item2:
-			if(item.isChecked())
-			{
-				crypterRec = false;
-				item.setChecked(false);
-			}
-			else
-			{
-				crypterRec = true;
-				item.setChecked(true);
-			}
-			break;*/
+
 		}
 		return super.onOptionsItemSelected(item);
 	}
 
-
-	/* The click listner for ListView in the navigation drawer */
-
-
-
-
-	/**
-	 * When using the ActionBarDrawerToggle, you must call it during
-	 * onPostCreate() and onConfigurationChanged()...
-	 */
-
-	@Override
 	protected void onPostCreate(Bundle savedInstanceState) {
 		super.onPostCreate(savedInstanceState);
 		// Sync the toggle state after onRestoreInstanceState has occurred.
 		mDrawerToggle.syncState();
 	}
 
-	@Override
+
 	public void onConfigurationChanged(Configuration newConfig) {
 		super.onConfigurationChanged(newConfig);
 		// Pass any configuration change to the drawer toggls
@@ -269,7 +242,7 @@ public class ConnexionActivity extends Activity {
 
 		@Override
 		public void run() {
-			sendMessage(new Message(Message.DECONNEXION, ""));
+			sendMessage(new Message(Message.DECONNECTION, ""));
 			try {
 				if(socket != null)
 				{
@@ -293,121 +266,159 @@ public class ConnexionActivity extends Activity {
 				socket = new Socket(adresse,port);
 			}catch(IOException e)
 			{
+				ConnexionActivity.this.runOnUiThread(new Runnable() {
+
+					@Override
+					public void run() {
+						ConnexionActivity.this.finish();
+					}
+				});
 				Log.v("erreur","Impossible de se connecter");
 				System.out.println("Impossible de se connecter: "+e);
+			}
+
+			if(socket != null)
+			{
+
+
+				try{
+					in = new ObjectInputStream(socket.getInputStream());
+					out = new ObjectOutputStream(socket.getOutputStream());
+				}catch(IOException e)
+				{
+
+					System.out.println("Impossible d'initialiser les buffer");
+				}
+
+				try
+				{
+					int R = (int)(Math.random()*256);
+					int G = (int)(Math.random()*256);
+					int B= (int)(Math.random()*256);
+					textColor = new MyColor(R, G, B);
+					ConnexionActivity.this.rsa.generateKeys();
+					client = new Client(nom,rsa.getPublic_key(),textColor,Client.MOBILE);
+					sendMessage(new Message(Message.CONNECTION, client));
+				}
+				catch (Exception e) {
+					System.out.println("Exception doing login : " + e);
+				}
+
+				while(running)
+				{
+					try {
+						Message message = (Message) in.readObject();
+						final MyColor couleur = message.getColor();
+						switch(message.getType()) {
+						case Message.CONNECTION:
+							serverPublicKey = message.getPublicKey();
+							break;
+						case Message.CRYPTED_MESSAGE:
+							System.out.println("Début mess cripté");
+							String[] mess = message.getMsg();
+							final String str;
+							if(crypter)
+							{
+								str = ConnexionActivity.this.rsa.decrypt(mess);
+							}
+							else
+							{
+								StringBuilder sb = new StringBuilder();
+								for (int i = 0; i < mess.length; i++) {
+									sb.append(mess[i]);
+
+
+								}
+								str = sb.toString();
+							}
+							ConnexionActivity.this.runOnUiThread(new Runnable() {
+
+								public void run() {
+									TextView text = new TextView(ConnexionActivity.this);
+									text.setText(str);
+									text.setTextColor(Color.rgb(couleur.getR(), couleur.getG(), couleur.getB()));
+									text.setPadding(0, 10, 0, 0);
+									text.setEms(10);
+									screen.addView(text);
+									scrollView.fullScroll(ScrollView.FOCUS_DOWN);
+									
+								}
+							}); // On affiche le message dans la zone d'affichage
+							//System.out.println(str);
+							//System.out.println("Fin mess cripté");
+							break;
+
+						case Message.MESSAGE:
+							final String msg = message.getMessage();
+							ConnexionActivity.this.runOnUiThread(new Runnable() {
+
+								@Override
+								public void run() {
+									// TODO Auto-generated method stub
+									TextView texte = new TextView(ConnexionActivity.this);
+									texte.setText(msg);
+									texte.setTextColor(Color.rgb(couleur.getR(), couleur.getG(), couleur.getB()));
+									texte.setPadding(0, 10, 0, 0);
+									texte.setEms(10);
+									screen.addView(texte);
+									scrollView.fullScroll(ScrollView.FOCUS_DOWN);
+								}
+							});
+							break;
+
+						case Message.LIST_CLIENTS:
+							final ArrayList<Client> liste = message.getListe();
+							System.out.println("Il y a " + liste.size() + " clients connecté");
+							ConnexionActivity.this.runOnUiThread(new Runnable() {
+
+								@Override
+								public void run() {
+									mDrawerList.setAdapter(new ContactAdapter(ConnexionActivity.this,
+											R.layout.drawer_list_item, liste));
+								}
+							});
+
+							//fenetre.refreshListeClient(liste);
+							break;
+
+						case Message.NEW_CLIENT:
+							int idClient = message.getId();
+							sendMessage(new Message(Message.ENABLE_CLIENT, idClient));
+							break;
+						} 
+					}
+					catch(Exception e) {
+						System.out.println("Exception ecoute du serveur: " + e);
+						running = false;
+						ConnexionActivity.this.finish();
+					}
+				}
+
+				//out.writeObject(new Message(Message.CONNEXION, nomClient));
+
+			}
+			else
+			{
+				ConnexionActivity.this.runOnUiThread(new Runnable() {
+
+					@Override
+					public void run() {
+
+						Toast.makeText(ConnexionActivity.this,"Impossible de contacter le serveur" , Toast.LENGTH_LONG).show();
+					}
+				});
 				ConnexionActivity.this.finish();
 			}
-
-			try{
-				in = new ObjectInputStream(socket.getInputStream());
-				out = new ObjectOutputStream(socket.getOutputStream());
-			}catch(IOException e)
-			{
-				System.out.println("Impossible d'initialiser les buffer");
-			}
-
-			try
-			{
-				ConnexionActivity.this.rsa.generateKeys();
-				sendMessage(new Message(Message.CONNEXION, nom));
-				sendMessage(new Message(Message.PUBLIC_KEY,ConnexionActivity.this.rsa.getPublic_key()));
-			}
-			catch (Exception e) {
-				System.out.println("Exception doing login : " + e);
-			}
-
-			while(running)
-			{
-				try {
-					Message message = (Message) in.readObject();
-
-					switch(message.getType()) {
-					case Message.PUBLIC_KEY:
-						ConnexionActivity.this.serverPublicKey = message.getPublicKey();
-						break;
-
-					case Message.CRYPTED_MESSAGE:
-						System.out.println("Début mess cripté");
-						String[] mess = message.getMsg();
-						final String str;
-						if(crypter)
-						{
-							str = ConnexionActivity.this.rsa.decrypt(mess);
-						}
-						else
-						{
-							StringBuilder sb = new StringBuilder();
-							for (int i = 0; i < mess.length; i++) {
-								sb.append(mess[i]);
-
-
-							}
-							str = sb.toString();
-						}
-						ConnexionActivity.this.runOnUiThread(new Runnable() {
-
-							public void run() {
-								screen.setText(screen.getText()+"\n"+str);
-								scrollView.fullScroll(ScrollView.FOCUS_DOWN);
-								
-							}
-						}); // On affiche le message dans la zone d'affichage
-						//System.out.println(str);
-						//System.out.println("Fin mess cripté");
-						break;
-
-					case Message.MESSAGE:
-						final String msg = message.getMessage();
-						Log.v("message",msg);
-						ConnexionActivity.this.runOnUiThread(new Runnable() {
-
-							@Override
-							public void run() {
-								// TODO Auto-generated method stub
-								screen.setText(screen.getText()+"\n"+msg);
-								scrollView.fullScroll(ScrollView.FOCUS_DOWN);
-							}
-						});
-						break;
-
-					case Message.LISTES_CLIENTS:
-						final ArrayList<Contact> liste = message.getListe();
-						System.out.println("Il y a " + liste.size() + " clients connecté:");
-						ConnexionActivity.this.runOnUiThread(new Runnable() {
-
-							@Override
-							public void run() {
-								mDrawerList.setAdapter(new ContactAdapter(ConnexionActivity.this,
-										R.layout.drawer_list_item, liste));
-							}
-						});
-
-						//fenetre.refreshListeClient(liste);
-						break;
-
-					case Message.NOUVEAU_CLIENT:
-						int idClient = message.getId();
-						sendMessage(new Message(Message.ACTIVER_CLIENT, idClient));
-						break;
-					} 
-				}
-				catch(Exception e) {
-					System.out.println("Exception ecoute du serveur: " + e);
-				}
-			}
-
-			//out.writeObject(new Message(Message.CONNEXION, nomClient));
-
-
 
 		}
 
 	}
 
-	 
-	
+
+
 	public void sendMessage(Message msg) {
 		try {
+			out.reset();
 			out.writeObject(msg);
 			out.flush();
 		}

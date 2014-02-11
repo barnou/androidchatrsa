@@ -1,23 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
 
-    <!--
-    <item android:id="@+id/item1" 
-          android:titleCondensed="Options"
-          android:title="Crypter à l'envoi" 
-          android:checkable="true"
-          android:checked="true"
-          />
-    <item android:id="@+id/item2" 
-          android:titleCondensed="Options"
-          android:title="Crypter à la réception" 
-          android:checkable="true"
-          android:checked="true"
-          />
-    -->
     <item
         android:id="@+id/param"
         android:title="Paramètres"
         android:titleCondensed="Param"/>
-
+	<item
+	    android:id="@+id/file"
+	    android:title="Envoyer un fichier"
+	    android:titleCondensed="SendFile"/>
 </menu>

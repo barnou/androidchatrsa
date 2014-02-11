@@ -11,6 +11,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -30,6 +31,16 @@
             android:name="com.example.phonechatclient.ConnexionActivity"
             android:label="@string/title_activity_connexion" >
         </activity>
+        <activity
+            android:name="com.example.phonechatclient.DownloadActivity"
+            android:label="@string/title_activity_download" >
+        </activity>
+
+        <service
+            android:name="com.example.phonechatclient.MyService"
+            android:enabled="true"
+            android:exported="true" >
+        </service>
     </application>
 
 </manifest>

@@ -26,10 +26,10 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		
+
 		connexion = (Button)findViewById(R.id.connexion);
 		connexion.setOnClickListener(new View.OnClickListener() {
-			
+
 			@Override
 			public void onClick(View v) {
 				Intent connexion = new Intent(MainActivity.this,ConnexionActivity.class);
@@ -40,7 +40,7 @@ public class MainActivity extends Activity {
 				MainActivity.this.startActivity(connexion);
 			}
 		});
-		
+
 		liste = (Spinner)findViewById(R.id.selectClef);
 		liste.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 
@@ -52,7 +52,7 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void onNothingSelected(AdapterView<?> arg0) {
-				
+
 			}
 		});
 		ArrayAdapter<String> aa = new ArrayAdapter<String>(this,
@@ -63,34 +63,35 @@ public class MainActivity extends Activity {
 
 		final EditText editNom = (EditText) findViewById(R.id.editNom);
 		nom = editNom.getText().toString();
-		
+
 		final EditText editPort = (EditText)findViewById(R.id.editPort);
 		port = Integer.parseInt(editPort.getText().toString());
-		
+
 		final EditText editAdresse = (EditText)findViewById(R.id.editAdresse);
 		adresse = editAdresse.getText().toString();
-		
+
 		editNom.addTextChangedListener(new TextWatcher() {
-			
+
 			@Override
 			public void onTextChanged(CharSequence s, int start, int before, int count) {
-				
+
 			}
-			
+
 			@Override
 			public void beforeTextChanged(CharSequence s, int start, int count,
 					int after) {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 			@Override
 			public void afterTextChanged(Editable s) {
 				if(editAdresse.getText().toString().length()!=0&&editPort.getText().toString().length()!=0&&editNom.getText().toString().length()!=0)
 				{
 					adresse = editAdresse.getText().toString();
 					port = Integer.parseInt(editPort.getText().toString());
-					nom = editNom.getText().toString();					connexion.setEnabled(true);
+					nom = editNom.getText().toString();					
+					connexion.setEnabled(true);
 				}
 				else
 				{
@@ -99,27 +100,28 @@ public class MainActivity extends Activity {
 			}
 		});
 		editPort.addTextChangedListener(new TextWatcher() {
-			
+
 			@Override
 			public void onTextChanged(CharSequence s, int start, int before, int count) {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 			@Override
 			public void beforeTextChanged(CharSequence s, int start, int count,
 					int after) {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 			@Override
 			public void afterTextChanged(Editable s) {
 				if(editAdresse.getText().toString().length()!=0&&editPort.getText().toString().length()!=0&&editNom.getText().toString().length()!=0)
 				{
 					adresse = editAdresse.getText().toString();
 					port = Integer.parseInt(editPort.getText().toString());
-					nom = editNom.getText().toString();					connexion.setEnabled(true);
+					nom = editNom.getText().toString();					
+					connexion.setEnabled(true);
 				}
 				else
 				{
@@ -128,20 +130,20 @@ public class MainActivity extends Activity {
 			}
 		});
 		editAdresse.addTextChangedListener(new TextWatcher() {
-			
+
 			@Override
 			public void onTextChanged(CharSequence s, int start, int before, int count) {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 			@Override
 			public void beforeTextChanged(CharSequence s, int start, int count,
 					int after) {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 			@Override
 			public void afterTextChanged(Editable s) {
 				if(editAdresse.getText().toString().length()!=0&&editPort.getText().toString().length()!=0&&editNom.getText().toString().length()!=0)
@@ -159,7 +161,7 @@ public class MainActivity extends Activity {
 		});
 	}
 
-	
+
 	/*public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
