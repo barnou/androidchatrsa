@@ -213,13 +213,13 @@ public class ConnexionActivity extends Activity {
 			});
 			builder.setView(view).show();
 			break;
-		case R.id.file:
+		/*case R.id.file:
 			Intent download = new Intent(ConnexionActivity.this,DownloadActivity.class);
 			download.putExtra("client", client);
 			download.putExtra("port", port);
 			download.putExtra("adresse", adresse);
 			ConnexionActivity.this.startActivity(download);
-			break;
+			break;*/
 
 		}
 		return super.onOptionsItemSelected(item);

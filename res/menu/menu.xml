@@ -5,8 +5,8 @@
         android:id="@+id/param"
         android:title="Paramètres"
         android:titleCondensed="Param"/>
-	<item
+	<!-- <item
 	    android:id="@+id/file"
 	    android:title="Envoyer un fichier"
-	    android:titleCondensed="SendFile"/>
+	    android:titleCondensed="SendFile"/>-->
 </menu>

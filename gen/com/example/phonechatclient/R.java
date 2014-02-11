@@ -53,7 +53,6 @@ public final class R {
         public static final int editAdresse=0x7f09000f;
         public static final int editNom=0x7f090009;
         public static final int editPort=0x7f090011;
-        public static final int file=0x7f09001e;
         public static final int image=0x7f090017;
         public static final int left_contact=0x7f090008;
         public static final int left_drawer=0x7f090005;
